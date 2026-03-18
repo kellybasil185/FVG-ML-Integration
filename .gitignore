@@ -5,6 +5,7 @@
 !Live_AI_Server.py
 !Master_AI_Brain.pkl
 !requirements.txt
+!Procfile
 
 # Keep gitignore itself
 !.gitignore

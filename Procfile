@@ -1,0 +1,1 @@
+web: gunicorn Live_AI_Server:app
