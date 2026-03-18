@@ -1,0 +1,10 @@
+# Ignore everything
+*
+
+# Allow only these files
+!Live_AI_Server.py
+!Master_AI_Brain.pkl
+!requirements.txt
+
+# Keep gitignore itself
+!.gitignore
