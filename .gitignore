@@ -6,6 +6,7 @@
 !Master_AI_Brain.pkl
 !requirements.txt
 !Procfile
+!.python-version
 
 # Keep gitignore itself
 !.gitignore
