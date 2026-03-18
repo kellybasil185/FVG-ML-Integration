@@ -37,9 +37,22 @@ def send_telegram_alert(ticker, direction, entry, sl, tp, prob):
 def webhook():
     try:
         data = request.json
-        features = ['dir', 'size_atr', 'overlap_pct', 'displacement', 'wick_ratio', 'dist_ema', 'pos_ema', 'session']
-        df = pd.DataFrame([[data[f] for f in features]], columns=features)
         
+        # 1. We know the model wants these exact features.
+        features = ['dir', 'size_atr', 'overlap_pct', 'displacement', 'wick_ratio', 'dist_ema', 'pos_ema', 'session']
+        
+        # 2. Build a dictionary mapping the incoming JSON to the exact feature names
+        input_dict = {f: [data[f]] for f in features}
+        
+        # 3. Create the DataFrame
+        df = pd.DataFrame(input_dict)
+        
+        # 4. CRITICAL FIX: Reorder the DataFrame columns to match the model's exact expected order
+        # We pull the expected order directly from the model object itself!
+        expected_features = model.feature_names_in_
+        df = df[expected_features]
+        
+        # 5. Ask the AI to grade the setup
         probability = model.predict_proba(df)[0][1] * 100 
         print(f"[{data['ticker']}] AI Graded: {probability:.2f}%")
         
@@ -48,6 +61,7 @@ def webhook():
             
         return jsonify({'status': 'success'}), 200
     except Exception as e:
+        print(f"Webhook Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 400
 
 if __name__ == '__main__':
