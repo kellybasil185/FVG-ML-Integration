@@ -7,6 +7,10 @@
 !requirements.txt
 !Procfile
 !.python-version
+!Data_splitter.py
+!Extract_News.py
+!News_Filter_Backtester.py
+!red_folder_news.csv
 
 # Keep gitignore itself
 !.gitignore
