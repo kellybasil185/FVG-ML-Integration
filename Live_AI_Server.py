@@ -8,7 +8,7 @@ import os
 # These will be hidden inside Railway's settings!
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
-CONFIDENCE_THRESHOLD = 0.70  
+CONFIDENCE_THRESHOLD = 0.60  
 
 app = Flask(__name__)
 
