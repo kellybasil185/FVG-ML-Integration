@@ -12,6 +12,10 @@ CONFIDENCE_THRESHOLD = 0.60
 
 app = Flask(__name__)
 
+# --- THE HOLDING CELL ---
+# This dictionary stores approved trades waiting for MT5 to fetch them
+approved_trades = {}
+
 print("Loading Master AI Brain...")
 try:
     model = joblib.load('Master_AI_Brain.pkl')
@@ -48,7 +52,6 @@ def webhook():
         df = pd.DataFrame(input_dict)
         
         # 4. CRITICAL FIX: Reorder the DataFrame columns to match the model's exact expected order
-        # We pull the expected order directly from the model object itself!
         expected_features = model.feature_names_in_
         df = df[expected_features]
         
@@ -57,12 +60,32 @@ def webhook():
         print(f"[{data['ticker']}] AI Graded: {probability:.2f}%")
         
         if probability >= (CONFIDENCE_THRESHOLD * 100):
+            # Action A: Send Telegram Alert
             send_telegram_alert(data['ticker'], data['dir'], data['entry'], data['sl'], data['tp'], probability)
+            
+            # Action B: Save to MT5 Holding Cell
+            approved_trades[data['ticker']] = data
+            print(f"⚙️ Trade saved to holding cell for MT5: {data['ticker']}")
             
         return jsonify({'status': 'success'}), 200
     except Exception as e:
         print(f"Webhook Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)}), 400
+
+# --- THE METATRADER 5 POLLING ENDPOINT ---
+@app.route('/get_trade', methods=['GET'])
+def send_to_mt5():
+    # MT5 will request its specific pair (e.g., /get_trade?pair=USDJPY)
+    requested_pair = request.args.get('pair')
+    
+    if requested_pair in approved_trades:
+        # .pop() grabs the trade data AND deletes it from memory so it executes only once
+        trade_data = approved_trades.pop(requested_pair)
+        print(f"✅ MT5 fetched and cleared trade for {requested_pair}")
+        return jsonify(trade_data), 200
+        
+    # If nothing is in the holding cell, tell MT5 to keep waiting
+    return jsonify({"status": "no_trade"}), 200
 
 if __name__ == '__main__':
     # Railway assigns a dynamic port, so we must catch it
